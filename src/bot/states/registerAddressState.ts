@@ -1,16 +1,19 @@
 import { Client, Message } from "whatsapp-web.js";
-import prisma from "../../database/prismaClientFactory";
+import { getPrismaClient } from "../../database/prismaClientFactory";
 import { STATES } from "../../config/constants";
 import { UserSession } from "../../types";
 
 export async function handleRegisterAddressState(
   client: Client,
   message: Message,
-  session: UserSession
+  session: UserSession,
+  companyId: string
 ): Promise<UserSession> {
   const address = message.body.trim();
   const phone = message.from;
-  await prisma.clientes.upsert({
+  const prisma = getPrismaClient(companyId);
+
+  await prisma.customer.create({
     where: { telefono_empresa_id: { telefono: phone, empresa_id: 1 } },
     update: { nombre: session.name!, direccion: address },
     create: {

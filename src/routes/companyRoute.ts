@@ -4,15 +4,14 @@ import { setupNewTenant } from "../database/setupNewTenant";
 
 const router = Router();
 
-// Create new company in central DB and tenant DB
 router.post("/company", async (req: Request, res: Response): Promise<void> => {
   const { name, phone } = req.body;
   if (!name) {
     res.status(400).json({ error: "Name is required" });
     return;
   }
-  const company = await centralPrisma.empresas.create({
-    data: { nombre: name },
+  const company = await centralPrisma.company.create({
+    data: { name },
   });
 
   await setupNewTenant(company.id.toString());

@@ -5,12 +5,12 @@ import { setupCompanySession, fetchQR } from "../services/qrService";
 const router = Router();
 
 router.post(
-  "/session/:companyId",
+  "/session/:tenantId",
   async (req: Request, res: Response): Promise<void> => {
     const { tenantId } = req.params;
     // Validate in central DB
-    const tenant = await centralPrisma.empresas.findUnique({
-      where: { id: Number(tenantId) },
+    const tenant = await centralPrisma.company.findUnique({
+      where: { id: tenantId },
     });
     if (!tenant) {
       res.status(404).json({ error: "Tenant not registered" });
@@ -18,15 +18,15 @@ router.post(
     }
     // Init WhatsApp session
     await setupCompanySession(tenantId);
-    res.json({ message: `📲 Session setup started for ${tenant.nombre}` });
+    res.json({ message: `📲 Session setup started for ${tenant.name}` });
   }
 );
 
 router.get(
-  "/qr/:companyId",
+  "/qr/:tenantId",
   async (req: Request, res: Response): Promise<void> => {
-    const { companyId } = req.params;
-    const qr = fetchQR(companyId);
+    const { tenantId } = req.params;
+    const qr = fetchQR(tenantId);
     if (!qr) {
       res.status(404).json({ error: "No QR available" });
       return;
