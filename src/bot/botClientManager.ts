@@ -3,6 +3,7 @@ import { Client, LocalAuth } from "whatsapp-web.js";
 import path from "path";
 import { handleIncomingMessage } from "./botMessageHandler";
 import { setQR } from "../services/qrService";
+import { getPrismaClient } from "../database/prismaClientFactory";
 
 const clients = new Map<string, Client>();
 
@@ -36,7 +37,7 @@ export async function initializeClientForCompany(
     setQR(companyId, null); // limpia el QR en memoria
   });
 
-  client.on("message", (msg) => handleIncomingMessage(companyId, client, msg));
+  client.on("message", (msg) => handleIncomingMessage(companyId, msg));
 
   await client.initialize();
   clients.set(companyId, client);

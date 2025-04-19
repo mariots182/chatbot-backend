@@ -1,5 +1,5 @@
 import { Client, Message } from "whatsapp-web.js";
-import prisma from "../../database/prismaClient";
+import prisma from "../../database/prismaClientFactory";
 import { STATES } from "../../config/constants";
 import { UserSession } from "../../types";
 
