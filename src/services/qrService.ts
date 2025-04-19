@@ -1,14 +1,14 @@
 import { getQRCode, initializeClientForCompany } from "../bot/botClientManager";
 
+let latestQR: string | null = null;
+
 export function setupCompanySession(companyId: string) {
   initializeClientForCompany(companyId);
 }
 
-export async function fetchQR(companyId: string): Promise<string | null> {
+export function fetchQR(companyId: string) {
   return getQRCode(companyId);
 }
-
-let latestQR: string | null = null;
 
 export function setQR(qr: string) {
   latestQR = qr;
