@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  // output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -8,34 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 model Company {
-  id    String @id @default(uuid())
-  name  String
-  phone String?
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  database  String  // nombre de la base de datos asignado
+  createdAt DateTime @default(now())
 }
-
-model Customer {
-  id       Int     @id @default(autoincrement())
-  name     String
-  phone    String  @unique
-  address  String
-  registeredAt DateTime @default(now())
-  orders   Order[]
-}
-
-model Order {
-  id         Int      @id @default(autoincrement())
-  customer   Customer @relation(fields: [customerId], references: [id])
-  customerId Int
-  quantity   Int
-  orderedAt  DateTime @default(now())
-  status     String   @default("pending")
-  notes      String?
-}
-
-model AdminUser {
-  id       Int    @id @default(autoincrement())
-  username String @unique
-  password String
-  role     String @default("support")
-}
-  
