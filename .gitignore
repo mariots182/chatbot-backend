@@ -8,4 +8,7 @@ dist
 *.log
 
 .wwebjs_auth
+
 .wwebjs_cache
+
+sessions

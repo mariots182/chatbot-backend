@@ -1,19 +1,16 @@
-import { getQRCode, initializeClientForCompany } from "../bot/botClientManager";
+// src/services/qrService.ts
+import { initializeClientForCompany } from "../bot/botClientManager";
 
-let latestQR: string | null = null;
+const qrStore = new Map<string, string | null>();
 
-export function setupCompanySession(companyId: string) {
-  initializeClientForCompany(companyId);
+export async function setupCompanySession(companyId: string): Promise<void> {
+  await initializeClientForCompany(companyId);
 }
 
-export function fetchQR(companyId: string) {
-  return getQRCode(companyId);
+export function setQR(companyId: string, qr: string | null): void {
+  qrStore.set(companyId, qr);
 }
 
-export function setQR(qr: string) {
-  latestQR = qr;
-}
-
-export function getQR(): string | null {
-  return latestQR;
+export function fetchQR(companyId: string): string | null {
+  return qrStore.get(companyId) || null;
 }

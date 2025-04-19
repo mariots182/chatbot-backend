@@ -1,38 +1,43 @@
-
+// src/bot/botClientManager.ts
 import { Client, LocalAuth } from "whatsapp-web.js";
-import { handleIncomingMessage } from "./botMessageHandler";
 import path from "path";
+import { handleIncomingMessage } from "./botMessageHandler";
+import { setQR } from "../services/qrService";
 
-const clients: Record<string, Client> = {};
-const qrCodes: Record<string, string> = {};
+const clients = new Map<string, Client>();
 
-export function getQRCode(companyId: string) {
-  return qrCodes[companyId] || null;
-}
+export async function initializeClientForCompany(
+  companyId: string
+): Promise<void> {
+  if (clients.has(companyId)) return;
 
-export async function initializeClientForCompany(companyId: string): Promise<void> {
-  if (clients[companyId]) return;
+  // cada empresa su propio directorio de sesión
+  const dataPath = path.join(process.cwd(), "sessions", companyId);
 
   const client = new Client({
-    authStrategy: new LocalAuth({
-      clientId: companyId,
-      dataPath: path.join(__dirname, "..", "..", "sessions"),
-    }),
-    puppeteer: { headless: true },
+    authStrategy: new LocalAuth({ clientId: companyId, dataPath }),
+    puppeteer: {
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+      ],
+    },
   });
 
   client.on("qr", (qr) => {
-    console.log(`📲 QR for ${companyId}:`);
-    qrCodes[companyId] = qr;
+    console.log(`📲 [${companyId}] QR generated`);
+    setQR(companyId, qr);
   });
 
   client.on("ready", () => {
-    console.log(`✅ WhatsApp client ready for ${companyId}`);
-    delete qrCodes[companyId];
+    console.log(`✅ [${companyId}] WhatsApp client ready`);
+    setQR(companyId, null); // limpia el QR en memoria
   });
 
-  client.on("message", handleIncomingMessage);
+  client.on("message", (msg) => handleIncomingMessage(companyId, client, msg));
 
-  client.initialize();
-  clients[companyId] = client;
+  await client.initialize();
+  clients.set(companyId, client);
 }
