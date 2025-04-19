@@ -8,9 +8,8 @@ export function formatCatalog(catalog: CatalogItem[]): string {
   if (catalog.length === 0) {
     return "📭 Lo siento, no hay productos en este momento.";
   }
-  return `🛒 *Catálogo*:\n${catalog
-    .map((c, i) => `${i + 1}. ${c.name} - $${c.price}`)
-    .join("\n")}`;
+  return `🛒 *Catálogo*:
+${catalog.map((c, i) => `${i + 1}. ${c.name} - $${c.price}`).join("\n")}`;
 }
 
 export function formatAskAddress(): string {

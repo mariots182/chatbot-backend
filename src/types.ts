@@ -1,10 +1,10 @@
 export type BotState =
-  | 'WELCOME'
-  | 'REGISTER_NAME'
-  | 'REGISTER_ADDRESS'
-  | 'SHOW_CATALOG'
-  | 'SELECT_PRODUCT'
-  | 'CONFIRM_ORDER';
+  | "WELCOME"
+  | "REGISTER_NAME"
+  | "REGISTER_ADDRESS"
+  | "SHOW_CATALOG"
+  | "SELECT_PRODUCT"
+  | "CONFIRM_ORDER";
 
 export interface CatalogItem {
   id: string;
@@ -19,4 +19,5 @@ export interface UserSession {
   address?: string;
   cart?: { item: CatalogItem; quantity: number }[];
   lastActivity: number;
+  data: Record<string, any>;
 }
