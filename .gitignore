@@ -12,3 +12,6 @@ dist
 .wwebjs_cache
 
 sessions
+
+prompt.txt
+prompt

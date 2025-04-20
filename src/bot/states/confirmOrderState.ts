@@ -7,7 +7,7 @@ export async function handleConfirmOrderState(
   client: Client,
   message: Message,
   session: UserSession,
-  companyId: string
+  tenantDbName: string
 ): Promise<UserSession> {
   const confirm = message.body.trim().toLowerCase();
   const phone = message.from;
@@ -15,7 +15,7 @@ export async function handleConfirmOrderState(
   if (confirm === "sí" || confirm === "si") {
     const item = session.cart![0];
 
-    const prisma = getPrismaClient(companyId);
+    const prisma = getPrismaClient(tenantDbName); // tenantDbName debe pasarse como parámetro
 
     await prisma.order.create({
       data: {

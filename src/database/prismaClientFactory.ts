@@ -3,17 +3,16 @@ import { getTenantDatabaseUrl } from "./utils";
 
 const clients: Record<string, PrismaClient> = {};
 
-/**
- * Returns a PrismaClient connected to the specified tenant DB.
- */
-export function getPrismaClient(tenantId: string): PrismaClient {
-  if (!clients[tenantId]) {
-    const url = getTenantDatabaseUrl(tenantId);
-    clients[tenantId] = new PrismaClient({
+export function getPrismaClient(tenantDbName: string): PrismaClient {
+  if (!clients[tenantDbName]) {
+    const url = getTenantDatabaseUrl(tenantDbName);
+
+    clients[tenantDbName] = new PrismaClient({
       datasources: { db: { url } },
     });
   }
-  return clients[tenantId];
+
+  return clients[tenantDbName];
 }
 
 export const centralPrisma = new PrismaClient();
