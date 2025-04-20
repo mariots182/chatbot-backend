@@ -15,13 +15,12 @@ export async function handleConfirmOrderState(
   if (confirm === "sí" || confirm === "si") {
     const item = session.cart![0];
 
-    const prisma = getPrismaClient(tenantDbName); // tenantDbName debe pasarse como parámetro
+    const prisma = getPrismaClient(tenantDbName);
 
     await prisma.order.create({
       data: {
         customer: { connect: { id: parseInt(session.userId) } },
         quantity: 1,
-        // : item.item.name,
       },
     });
     await message.reply("✅ Pedido confirmado. Gracias.");

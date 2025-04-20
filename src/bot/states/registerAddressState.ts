@@ -14,7 +14,7 @@ export async function handleRegisterAddressState(
   const prisma = getPrismaClient(companyId);
 
   await prisma.customer.create({
-    where: { telefono_empresa_id: { telefono: phone, empresa_id: 1 } },
+    where: { phone: { telefono: phone, empresa_id: 1 } },
     update: { nombre: session.name!, direccion: address },
     create: {
       nombre: session.name!,

@@ -8,7 +8,11 @@ export function getPrismaClient(tenantDbName: string): TenantPrismaClient {
     const url = getTenantDatabaseUrl(tenantDbName);
 
     clients[tenantDbName] = new TenantPrismaClient({
-      datasources: { db: { url } },
+      datasources: {
+        db: {
+          url: `postgresql://postgres:M4r10182@localhost:5432/${tenantDbName}`,
+        },
+      },
     });
   }
 
