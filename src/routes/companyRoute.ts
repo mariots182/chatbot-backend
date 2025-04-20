@@ -5,10 +5,11 @@ import { setupNewTenant } from "../database/setupNewTenant";
 const router = Router();
 
 router.post("/company", async (req: Request, res: Response): Promise<void> => {
-  const { name, phone } = req.body;
+  const { name } = req.body;
 
   if (!name) {
     res.status(400).json({ error: "Name is required" });
+
     return;
   }
 
@@ -19,7 +20,26 @@ router.post("/company", async (req: Request, res: Response): Promise<void> => {
     },
   });
 
-  await setupNewTenant(company.id.toString());
+  if (!company) {
+    res.status(500).json({ error: "Failed to create company" });
+
+    return;
+  }
+
+  await setupNewTenant(company.id)
+    .then(() => {
+      console.log(`✅ Tenant setup completed for company: ${company.name}`);
+    })
+    .catch((error) => {
+      console.error(
+        `❌ Error setting up tenant for company: ${company.name}`,
+        error
+      );
+
+      res.status(500).json({ error: "Failed to set up tenant" });
+
+      return;
+    });
 
   res.json({ message: "Company registered", company });
 });

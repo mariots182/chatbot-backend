@@ -7,8 +7,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.use("/api", qrRoute);
 app.use("/api", companyRoute);
+
+app.use("/api", qrRoute);
 
 app.get("/", (_req, res) => {
   res.send("🚀 WhatsApp bot is running");
