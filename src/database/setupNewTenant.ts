@@ -29,10 +29,10 @@ export async function setupNewTenant(tenantId: number): Promise<void> {
     }
   }
 
-  console.info(`[setupNewTenant] fullTenantUrl: ${fullTenantUrl}`);
-  console.info(`[setupNewTenant] Creating new database: ${dbName}`);
+  console.info(`🏗️ [setupNewTenant] fullTenantUrl: ${fullTenantUrl}`);
+  console.info(`🏗️ [setupNewTenant] Creating new database: ${dbName}`);
   console.info(
-    `[setupNewTenant] Applying migrations with schema: ${schemaPath}`
+    `🏗️ [setupNewTenant] Applying migrations with schema: ${schemaPath}`
   );
 
   try {
@@ -41,10 +41,10 @@ export async function setupNewTenant(tenantId: number): Promise<void> {
       { stdio: "inherit" }
     );
   } catch (error) {
-    console.error("[setupNewTenant] ❌ Error applying migrations:", error);
+    console.error("🏗️ [setupNewTenant] ❌ Error applying migrations:", error);
 
     throw error;
   }
 
-  console.log(`✅ Migrations applied for ${dbName}`);
+  console.log(`✅ [setupNewTenant] Migrations applied for ${dbName}`);
 }

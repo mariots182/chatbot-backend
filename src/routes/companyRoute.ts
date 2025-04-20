@@ -28,11 +28,13 @@ router.post("/company", async (req: Request, res: Response): Promise<void> => {
 
   await setupNewTenant(company.id)
     .then(() => {
-      console.log(`✅ Tenant setup completed for company: ${company.name}`);
+      console.log(
+        `✅ [companyRoute] Tenant setup completed for company: ${company.name}`
+      );
     })
     .catch((error) => {
       console.error(
-        `❌ Error setting up tenant for company: ${company.name}`,
+        `❌ [companyRoute] Error setting up tenant for company: ${company.name}`,
         error
       );
 
