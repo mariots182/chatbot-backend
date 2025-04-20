@@ -1,5 +1,6 @@
 import { PrismaClient as TenantPrismaClient } from "../../prisma/tenant/generated/client";
 import { getTenantDatabaseUrl } from "./utils";
+import { PrismaClient } from "@prisma/client";
 
 const clients: Record<string, TenantPrismaClient> = {};
 
@@ -19,4 +20,4 @@ export function getPrismaClient(tenantDbName: string): TenantPrismaClient {
   return clients[tenantDbName];
 }
 
-export const centralPrisma = new TenantPrismaClient();
+export const centralPrisma = new PrismaClient();

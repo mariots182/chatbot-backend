@@ -11,7 +11,10 @@ router.post("/company", async (req: Request, res: Response): Promise<void> => {
     return;
   }
   const company = await centralPrisma.company.create({
-    data: { name },
+    data: {
+      name: name,
+      database: name,
+    },
   });
 
   await setupNewTenant(company.id.toString());

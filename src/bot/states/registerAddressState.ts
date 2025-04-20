@@ -13,16 +13,29 @@ export async function handleRegisterAddressState(
   const phone = message.from;
   const prisma = getPrismaClient(companyId);
 
-  await prisma.customer.create({
-    where: { phone: { telefono: phone, empresa_id: 1 } },
-    update: { nombre: session.name!, direccion: address },
-    create: {
-      nombre: session.name!,
-      direccion: address,
-      telefono: phone,
-      empresa_id: 1,
-    },
+  // await prisma.customer.create({
+  //   where: { phone: { telefono: phone, empresa_id: 1 } },
+  //   update: { nombre: session.name!, direccion: address },
+  //   create: {
+  //     nombre: session.name!,
+  //     direccion: address,
+  //     telefono: phone,
+  //     empresa_id: 1,
+  //   },
+  // });
+  const existing = await prisma.customer.findUnique({
+    where: { phone: phone },
   });
+
+  if (!existing) {
+    await prisma.customer.create({
+      data: {
+        name: session.name!,
+        phone: phone,
+        address: session.address!,
+      },
+    });
+  }
   await message.reply("✅ Datos registrados. Ahora muestro catálogo.");
   return { ...session, state: STATES.SHOW_CATALOG, address };
 }
