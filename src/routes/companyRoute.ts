@@ -16,7 +16,7 @@ router.post("/company", async (req: Request, res: Response): Promise<void> => {
   const company = await centralPrisma.company.create({
     data: {
       name: name,
-      database: name,
+      database: name.replace(/[^a-zA-Z0-9_]/g, "_"),
     },
   });
 
@@ -26,7 +26,7 @@ router.post("/company", async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  await setupNewTenant(company.id)
+  await setupNewTenant(company)
     .then(() => {
       console.log(
         `✅ [companyRoute] Tenant setup completed for company: ${company.name}`

@@ -6,3 +6,10 @@ export function getTenantDatabaseUrl(tenantDbName: string): string {
 
   return `${base}tenant_${tenantDbName}`;
 }
+
+export interface Company {
+  id: number;
+  name: string;
+  database: string;
+  createdAt: Date;
+}

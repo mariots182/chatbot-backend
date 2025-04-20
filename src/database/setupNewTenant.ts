@@ -1,7 +1,7 @@
 import pgtools from "pgtools";
 import path from "path";
 import { execSync } from "child_process";
-import { getTenantDatabaseUrl } from "./utils";
+import { Company } from "./utils";
 
 const baseConfig = {
   user: process.env.PGUSER!,
@@ -10,8 +10,8 @@ const baseConfig = {
   host: process.env.PGHOST!,
 };
 
-export async function setupNewTenant(tenantId: number): Promise<void> {
-  const dbName = `tenant_${tenantId}`;
+export async function setupNewTenant(tenant: Company): Promise<void> {
+  const dbName = `tenant_${tenant.database.replace(/[^a-zA-Z0-9_]/g, "_")}`;
   const fullTenantUrl = `${process.env.PG_BASE_URL}${dbName}`;
   const schemaPath = path.join(__dirname, "../../prisma/tenant/schema.prisma");
 
