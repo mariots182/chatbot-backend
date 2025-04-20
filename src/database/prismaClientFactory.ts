@@ -1,23 +1,25 @@
-import { PrismaClient as TenantPrismaClient } from "../../prisma/tenant/generated/client";
-import { getTenantDatabaseUrl } from "./utils";
-import { PrismaClient } from "@prisma/client";
+// src/database/prismaClientFactory.ts
+import { PrismaClient as CentralPrismaClient } from "@prisma/client";
+import { PrismaClient as TenantPrismaClient } from "../generated/tenant"; // import generado
 
-const clients: Record<string, TenantPrismaClient> = {};
+// Cliente para la DB central
+export const centralPrisma = new CentralPrismaClient();
 
-export function getPrismaClient(tenantDbName: string): TenantPrismaClient {
-  if (!clients[tenantDbName]) {
-    const url = getTenantDatabaseUrl(tenantDbName);
+const tenantClients: Record<string, TenantPrismaClient> = {};
 
-    clients[tenantDbName] = new TenantPrismaClient({
-      datasources: {
-        db: {
-          url: `postgresql://postgres:M4r10182@localhost:5432/${tenantDbName}`,
-        },
-      },
+/**
+ * Devuelve un PrismaClient para la base de datos de cada tenant.
+ * Asegúrate de haber establecido process.env.TENANT_DATABASE_URL antes de llamar.
+ */
+export function getPrismaClient(databaseName: string): TenantPrismaClient {
+  if (!tenantClients[databaseName]) {
+    const url = process.env.TENANT_DATABASE_URL!.replace(
+      "<DB_NAME>",
+      databaseName
+    );
+    tenantClients[databaseName] = new TenantPrismaClient({
+      datasources: { db: { url } },
     });
   }
-
-  return clients[tenantDbName];
+  return tenantClients[databaseName];
 }
-
-export const centralPrisma = new PrismaClient();

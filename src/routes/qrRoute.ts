@@ -8,7 +8,6 @@ router.post(
   "/session/:tenantName",
   async (req: Request, res: Response): Promise<void> => {
     const { tenantName } = req.params;
-    // Validate in central DB
 
     const company = await centralPrisma.company.create({
       data: {

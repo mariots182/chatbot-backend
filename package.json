@@ -2,7 +2,13 @@
   "name": "chatbot-backend",
   "version": "1.0.0",
   "main": "index.js",
+  "prisma": {
+    "migrations": "migrations/",
+    "schema": "prisma/schema.prisma"
+  },
   "scripts": {
+    "prisma:gen:central": "prisma generate --schema=prisma/schema.prisma",
+    "prisma:gen:tenant": "prisma generate --schema=prisma/tenant/schema.prisma",
     "dev": "ts-node-dev --respawn --transpile-only ./src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

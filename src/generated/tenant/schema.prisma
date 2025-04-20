@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../../tenant/generated"
+  output   = "../../src/generated/tenant"
 }
 
 datasource db {
@@ -22,5 +22,7 @@ model Order {
   customerId Int
   quantity   Int
   createdAt  DateTime @default(now())
+  status     String   @default("pending")
+  notes      String?
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }

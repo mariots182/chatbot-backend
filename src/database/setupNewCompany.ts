@@ -1,14 +1,8 @@
-import { centralPrisma as prisma } from "./prismaClientFactory";
+import { centralPrisma } from "../database/prismaClientFactory";
 
-export async function setupNewCompany(
-  companyName: string,
-  generatedDbName: string
-) {
-  const company = await prisma.company.create({
-    data: {
-      name: companyName,
-      database: generatedDbName,
-    },
+export async function setupNewCompany(name: string, database: string) {
+  const company = await centralPrisma.company.create({
+    data: { name, database },
   });
 
   console.log("New company created:", company);
