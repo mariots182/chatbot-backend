@@ -6,10 +6,12 @@ const router = Router();
 
 router.post("/company", async (req: Request, res: Response): Promise<void> => {
   const { name, phone } = req.body;
+
   if (!name) {
     res.status(400).json({ error: "Name is required" });
     return;
   }
+
   const company = await centralPrisma.company.create({
     data: {
       name: name,

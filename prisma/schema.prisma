@@ -9,6 +9,7 @@ datasource db {
 model Company {
   id        Int     @id @default(autoincrement())
   name      String  @unique
-  database  String  // nombre de la base de datos asignado
+  database  String  
   createdAt DateTime @default(now())
 }
+  
