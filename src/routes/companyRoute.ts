@@ -31,6 +31,7 @@ router.post("/company", async (req: Request, res: Response): Promise<void> => {
       console.log(
         `✅ [companyRoute] Tenant setup completed for company: ${company.name}`
       );
+      res.json({ message: "Company registered", company });
     })
     .catch((error) => {
       console.error(
@@ -42,8 +43,6 @@ router.post("/company", async (req: Request, res: Response): Promise<void> => {
 
       return;
     });
-
-  res.json({ message: "Company registered", company });
 });
 
 export default router;

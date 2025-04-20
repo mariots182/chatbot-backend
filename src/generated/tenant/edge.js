@@ -155,7 +155,7 @@ const config = {
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../../../.env",
+    "rootEnvPath": null,
     "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../../../prisma/tenant",
@@ -165,17 +165,16 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
-        "fromEnvVar": "TENANT_DATABASE_URL",
-        "value": null
+        "fromEnvVar": "DATABASE_URL",
+        "value": "postgresql://postgres:M4r10182@localhost:5432/tenant_Empresa_cotorrisa"
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../../src/generated/tenant\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"TENANT_DATABASE_URL\")\n}\n\nmodel Customer {\n  id        Int      @id @default(autoincrement())\n  name      String\n  phone     String   @unique\n  address   String\n  createdAt DateTime @default(now())\n  orders    Order[]\n}\n\nmodel Order {\n  id         Int      @id @default(autoincrement())\n  customerId Int\n  quantity   Int\n  createdAt  DateTime @default(now())\n  status     String   @default(\"pending\")\n  notes      String?\n  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n}\n",
-  "inlineSchemaHash": "bbc9745312f79477dab2f32d31922eed6589d9ccc2a75bc1e623e55fab0f8c27",
+  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../../src/generated/tenant\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Customer {\n  id        Int      @id @default(autoincrement())\n  name      String\n  phone     String   @unique\n  address   String\n  createdAt DateTime @default(now())\n  orders    Order[]\n}\n\nmodel Order {\n  id         Int      @id @default(autoincrement())\n  customerId Int\n  quantity   Int\n  createdAt  DateTime @default(now())\n  status     String   @default(\"pending\")\n  notes      String?\n  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n}\n",
+  "inlineSchemaHash": "21413f710c5c715aadbab4d758acc2dbbe2300c53f7115068b2f474c033bf736",
   "copyEngine": true
 }
 config.dirname = '/'
@@ -187,7 +186,7 @@ config.compilerWasm = undefined
 
 config.injectableEdgeEnv = () => ({
   parsed: {
-    TENANT_DATABASE_URL: typeof globalThis !== 'undefined' && globalThis['TENANT_DATABASE_URL'] || typeof process !== 'undefined' && process.env && process.env.TENANT_DATABASE_URL || undefined
+    DATABASE_URL: typeof globalThis !== 'undefined' && globalThis['DATABASE_URL'] || typeof process !== 'undefined' && process.env && process.env.DATABASE_URL || undefined
   }
 })
 

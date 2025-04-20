@@ -36,9 +36,16 @@ export async function setupNewTenant(tenant: Company): Promise<void> {
   );
 
   try {
-    execSync(
-      `DATABASE_URL="${fullTenantUrl}" npx prisma migrate deploy --schema=${schemaPath}`,
-      { stdio: "inherit" }
+    execSync(`npx prisma db push --schema=${schemaPath}`, {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        DATABASE_URL: fullTenantUrl,
+      },
+    });
+
+    console.log(
+      `✅ [setupNewTenant] Schema pushed successfully to ${fullTenantUrl}`
     );
   } catch (error) {
     console.error("🏗️ [setupNewTenant] ❌ Error applying migrations:", error);
