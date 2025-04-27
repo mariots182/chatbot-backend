@@ -7,6 +7,7 @@
 import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode";
 import path from "path";
+import fs from "fs";
 
 const sessions: Map<string, Client> = new Map();
 
@@ -87,8 +88,65 @@ export class WhatsappSessionManager {
         console.log(
           `✅ [WhatsappSessionManager] Client already authenticated for ${companyId}`
         );
-        reject(new Error("Already authenticated"));
+        if (client.pupPage) {
+          return client.emit("qr", client.pupPage); // Emite el QR para ese cliente
+          // resolve(client.emit("qr", client.pupPage)); // Resolvemos con el QR de la sesión activa
+        }
       });
     });
+  }
+
+  static async loadSessions() {
+    const sessionsPath = path.join(__dirname, "../../../sessions");
+    const directories = fs.readdirSync(sessionsPath);
+
+    for (const dir of directories) {
+      const companyId = dir;
+      const client = new Client({
+        authStrategy: new LocalAuth({
+          clientId: companyId,
+          dataPath: path.join(sessionsPath, companyId),
+        }),
+        puppeteer: { headless: true, args: ["--no-sandbox"] },
+      });
+      await client.initialize();
+      sessions.set(companyId, client);
+    }
+  }
+
+  static startListening(client: Client, companyId: string) {
+    // aqui debe ir la logica de botMessageHandler.ts
+    // se debe pasar el session de cada bot por empresa para manejar el estado de cada numero escrito
+
+    console.log(
+      `🧩 [WhatsappSessionManager] Listening for messages for ${companyId}`
+    );
+
+    // ESTO SE ELIMINA???
+    //  client.on("message", (message) => {
+    //    console.log(
+    //      `📩 [WhatsappSessionManager] New message from ${message.from}: ${message.body}`
+    //    );
+    //    if (message.body.toLowerCase() === "start") {
+    //      message.reply("¡Hola! ¿Cómo puedo ayudarte hoy?");
+    //    } else if (message.body.toLowerCase() === "order") {
+    //      message.reply("¿Qué producto te gustaría pedir?");
+    //    }
+    //  });
+  }
+
+  static async startAllBots() {
+    console.log(
+      `🧩 [WhatsappSessionManager] Starting all bots for ${sessions.size} companies`
+    );
+    await this.loadSessions();
+
+    for (let [companyId, client] of sessions) {
+      console.log(
+        `🧩 [WhatsappSessionManager] Starting bot for company ${companyId}`
+      );
+
+      this.startListening(client, companyId);
+    }
   }
 }

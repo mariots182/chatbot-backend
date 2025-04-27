@@ -2,6 +2,7 @@ import express from "express";
 import companyRoute from "./routes/companyRoute";
 import qrRoutes from "./routes/qrRoutes";
 import cors from "cors";
+import { WhatsappSessionManager } from "./services/whatsapp/whatsappSessionManager";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,9 +22,11 @@ app.use("/api", companyRoute);
 // Importa las rutas de QR para obtener el QR de WhatsApp por empresa
 app.use("/api/qr", qrRoutes);
 
-app.get("/", (_req, res) => {
-  res.send("🚀 WhatsApp bot is running");
-});
+// app.get("/", (_req, res) => {
+//   res.send("🚀 WhatsApp bot is running");
+// });
+
+WhatsappSessionManager.startAllBots();
 
 app.listen(PORT, () => {
   console.log(`✅ Server listening at http://localhost:${PORT}`);
