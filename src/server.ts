@@ -8,7 +8,9 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 app.use("/api", companyRoute);
-app.use("/api/qr", qrRoutes);
+
+// Importa las rutas de QR para obtener el QR de WhatsApp por empresa
+app.use("/qr", qrRoutes);
 
 app.get("/", (_req, res) => {
   res.send("🚀 WhatsApp bot is running");
