@@ -1,6 +1,6 @@
 import express from "express";
-import qrRoute from "./routes/qrRoute";
 import companyRoute from "./routes/companyRoute";
+import qrRoutes from "./routes/qrRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,8 +8,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 app.use("/api", companyRoute);
-
-app.use("/api", qrRoute);
+app.use("/api/qr", qrRoutes);
 
 app.get("/", (_req, res) => {
   res.send("🚀 WhatsApp bot is running");

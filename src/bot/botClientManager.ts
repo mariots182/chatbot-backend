@@ -2,7 +2,7 @@
 import { Client, LocalAuth } from "whatsapp-web.js";
 import path from "path";
 import { handleIncomingMessage } from "./botMessageHandler";
-import { setQR } from "../services/qrService";
+// import { setQR } from "../services/qrService";
 import { getPrismaClient } from "../database/prismaClientFactory";
 
 const clients = new Map<string, Client>();
@@ -27,15 +27,15 @@ export async function initializeClientForCompany(
     },
   });
 
-  client.on("qr", (qr) => {
-    console.log(`📲 [${companyId}] QR generated`);
-    setQR(companyId, qr);
-  });
+  // client.on("qr", (qr) => {
+  //   console.log(`📲 [${companyId}] QR generated`);
+  //   setQR(companyId, qr);
+  // });
 
-  client.on("ready", () => {
-    console.log(`✅ [${companyId}] WhatsApp client ready`);
-    setQR(companyId, null); // limpia el QR en memoria
-  });
+  // client.on("ready", () => {
+  //   console.log(`✅ [${companyId}] WhatsApp client ready`);
+  //   setQR(companyId, null); // limpia el QR en memoria
+  // });
 
   client.on("message", (msg) => handleIncomingMessage(companyId, msg));
 
