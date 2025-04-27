@@ -20,6 +20,7 @@ export class WhatsappSessionManager {
       console.log(
         `✅ [WhatsappSessionManager] Client already initialized for ${companyId}`
       );
+
       return sessions.get(companyId)!;
     }
 
@@ -67,11 +68,18 @@ export class WhatsappSessionManager {
     const client = await this.getOrCreateClient(companyId);
 
     return new Promise((resolve, reject) => {
+      if (client.info && client.info.wid) {
+        // Generamos un nuevo QR solo si la sesión está lista
+        client.emit("qr", client.info.wid); // Emite el QR para ese cliente
+      }
+
       client.on("qr", async (qr) => {
         console.log(
           `🧩 [WhatsappSessionManager] QR generated for ${companyId}`
         );
+
         const base64 = await qrcode.toDataURL(qr);
+
         resolve(base64);
       });
 
