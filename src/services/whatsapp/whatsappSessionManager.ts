@@ -1,13 +1,8 @@
-// Crear y recuperar sesiones
-
-// Generar QR si no hay sesión
-
-// Guardar en disco la sesión (persistencia)
-
 import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode";
 import path from "path";
 import fs from "fs";
+import { setupMessageListener } from "../../bot/botMessageHandler";
 
 const sessions: Map<string, Client> = new Map();
 
@@ -70,8 +65,7 @@ export class WhatsappSessionManager {
 
     return new Promise((resolve, reject) => {
       if (client.info && client.info.wid) {
-        // Generamos un nuevo QR solo si la sesión está lista
-        client.emit("qr", client.info.wid); // Emite el QR para ese cliente
+        client.emit("qr", client.info.wid);
       }
 
       client.on("qr", async (qr) => {
@@ -89,8 +83,7 @@ export class WhatsappSessionManager {
           `✅ [WhatsappSessionManager] Client already authenticated for ${companyId}`
         );
         if (client.pupPage) {
-          return client.emit("qr", client.pupPage); // Emite el QR para ese cliente
-          // resolve(client.emit("qr", client.pupPage)); // Resolvemos con el QR de la sesión activa
+          return client.emit("qr", client.pupPage);
         }
       });
     });
@@ -115,24 +108,11 @@ export class WhatsappSessionManager {
   }
 
   static startListening(client: Client, companyId: string) {
-    // aqui debe ir la logica de botMessageHandler.ts
-    // se debe pasar el session de cada bot por empresa para manejar el estado de cada numero escrito
-
     console.log(
-      `🧩 [WhatsappSessionManager] Listening for messages for ${companyId}`
+      `🧩 [WhatsappSessionManager] Listening for messages for company ${companyId}`
     );
 
-    // ESTO SE ELIMINA???
-    //  client.on("message", (message) => {
-    //    console.log(
-    //      `📩 [WhatsappSessionManager] New message from ${message.from}: ${message.body}`
-    //    );
-    //    if (message.body.toLowerCase() === "start") {
-    //      message.reply("¡Hola! ¿Cómo puedo ayudarte hoy?");
-    //    } else if (message.body.toLowerCase() === "order") {
-    //      message.reply("¿Qué producto te gustaría pedir?");
-    //    }
-    //  });
+    setupMessageListener(client, companyId);
   }
 
   static async startAllBots() {

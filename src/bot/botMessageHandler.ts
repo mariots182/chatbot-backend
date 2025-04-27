@@ -7,11 +7,48 @@ import { handleRegisterAddressState } from "./states/registerAddressState";
 import { handleShowCatalogState } from "./states/showCatalogState";
 import { handleSelectProductState } from "./states/selectProductState";
 import { handleConfirmOrderState } from "./states/confirmOrderState";
-import { getPrismaClient } from "../database/prismaClientFactory";
+import {
+  centralPrisma,
+  getPrismaClient,
+} from "../database/prismaClientFactory";
 
-export async function handleIncomingMessage(companyId: string, msg: Message) {
-  const prisma = getPrismaClient(companyId);
+export const setupMessageListener = (client: Client, companyId: string) => {
+  client.on("message", (message) => {
+    handleIncomingMessage(client, message, companyId);
+  });
+};
+
+export async function handleIncomingMessage(
+  client: Client,
+  msg: Message,
+  companyId: string
+) {
+  console.log(
+    `[handleIncomingMessage] Received message for client ${client} :`,
+    msg.body
+  );
+
+  const company = await centralPrisma.company.findUnique({
+    where: { id: Number(companyId) },
+  });
+
+  if (!company) {
+    console.error(
+      `❌ [handleIncomingMessage] Company not found for ID ${companyId}`
+    );
+    return;
+  }
+  console.log(`🧩 [handleIncomingMessage] Existing client ${companyId}`);
+  console.log(`🧩 [handleIncomingMessage] Company name ${company.name}`);
+  console.log(
+    `🧩 [handleIncomingMessage] Company database ${company.database}`
+  );
+
+  const prisma = getPrismaClient(company.database);
+
   const phone = msg.from.split("@")[0];
+
+  //como hacer una sesion para cada usuario y manejar la conversacion por estados
   // let nextSession = session;
 
   // switch (session.state) {
@@ -34,6 +71,5 @@ export async function handleIncomingMessage(companyId: string, msg: Message) {
   //     nextSession = await handleConfirmOrderState(client, message, session);
   //     break;
   // }
-
   // updateSession(userId, nextSession);
 }

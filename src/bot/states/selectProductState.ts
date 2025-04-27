@@ -10,7 +10,7 @@ export async function handleSelectProductState(
   const idx = parseInt(message.body.trim(), 10) - 1;
   const catalog = (session.cart || []).map(
     (cartItem) => cartItem.item
-  ) as CatalogItem[]; // extracting items from cart
+  ) as CatalogItem[];
   const product = catalog[idx];
   await message.reply(`🧾 Confirmas producto: ${product.name}?`);
   return {

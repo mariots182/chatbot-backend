@@ -19,12 +19,7 @@ app.use(express.json());
 
 app.use("/api", companyRoute);
 
-// Importa las rutas de QR para obtener el QR de WhatsApp por empresa
 app.use("/api/qr", qrRoutes);
-
-// app.get("/", (_req, res) => {
-//   res.send("🚀 WhatsApp bot is running");
-// });
 
 WhatsappSessionManager.startAllBots();
 

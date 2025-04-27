@@ -1,10 +1,8 @@
 import { UserSession } from "../types";
 import { SESSION_TTL } from "./constants";
 
-// In-memory session store
 const sessions = new Map<string, UserSession>();
 
-// Get or create session
 export function getSession(userId: string): UserSession {
   const now = Date.now();
   let session = sessions.get(userId);
@@ -26,7 +24,6 @@ export function getSession(userId: string): UserSession {
 
 export function updateSession(userId: string, session: UserSession) {}
 
-// Update or persist session
 export function setSession(userId: string, session: UserSession): void {
   sessions.set(userId, {
     ...session,
@@ -34,7 +31,6 @@ export function setSession(userId: string, session: UserSession): void {
   });
 }
 
-// Clear session
 export function clearSession(userId: string): void {
   sessions.delete(userId);
 }
