@@ -21,3 +21,14 @@ export interface UserSession {
   lastActivity: number;
   data: Record<string, any>;
 }
+
+export interface Company {
+  id: number;
+  name: string;
+  database: string;
+  createdAt: Date;
+  // whatsappId: string;
+  // whatsappToken: string;
+  // whatsappPhone: string;
+  // whatsappClientId: string;
+}

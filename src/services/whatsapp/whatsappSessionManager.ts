@@ -3,6 +3,8 @@ import qrcode from "qrcode";
 import path from "path";
 import fs from "fs";
 import { setupMessageListener } from "../../bot/botMessageHandler";
+import { centralPrisma } from "../../database/prismaClientFactory";
+import { Company } from "@prisma/client";
 
 const sessions: Map<string, Client> = new Map();
 
@@ -107,18 +109,15 @@ export class WhatsappSessionManager {
     }
   }
 
-  static startListening(client: Client, companyId: string) {
-    console.log(
-      `🧩 [WhatsappSessionManager] Listening for messages for company ${companyId}`
-    );
-
-    setupMessageListener(client, companyId);
+  static startListening(client: Client, company: Company) {
+    setupMessageListener(client, company);
   }
 
   static async startAllBots() {
     console.log(
       `🧩 [WhatsappSessionManager] Starting all bots for ${sessions.size} companies`
     );
+
     await this.loadSessions();
 
     for (let [companyId, client] of sessions) {
@@ -126,7 +125,25 @@ export class WhatsappSessionManager {
         `🧩 [WhatsappSessionManager] Starting bot for company ${companyId}`
       );
 
-      this.startListening(client, companyId);
+      const company = await centralPrisma.company.findUnique({
+        where: { id: Number(companyId) },
+      });
+
+      if (!company) {
+        console.error(
+          `❌ [WhatsappSessionManager] Company with ID ${companyId} not found`
+        );
+
+        throw new Error(
+          `❌ [WhatsappSessionManager] Company with ID ${companyId} not found`
+        );
+      }
+
+      console.log(
+        `🧩 [WhatsappSessionManager] Company found ID: ${company.id}, Name: ${company.name}, Database: ${company.database} `
+      );
+
+      this.startListening(client, company);
     }
   }
 }
