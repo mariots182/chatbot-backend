@@ -1,5 +1,5 @@
 import { Client, Message } from "whatsapp-web.js";
-import { getSession, setSession } from "../config/sessionManager";
+import { getSession } from "../config/sessionManager";
 import { STATES } from "../config/constants";
 import { handleWelcomeState } from "./states/welcomeState";
 import { handleRegisterNameState } from "./states/registerNameState";
@@ -7,13 +7,13 @@ import { handleRegisterAddressState } from "./states/registerAddressState";
 import { handleShowCatalogState } from "./states/showCatalogState";
 import { handleSelectProductState } from "./states/selectProductState";
 import { handleConfirmOrderState } from "./states/confirmOrderState";
-import { UserSession } from "../types";
 import { Company } from "@prisma/client";
 
 export const setupMessageListener = (client: Client, company: Company) => {
   console.log(
     `🧩 [botMessageHandler] Listening for messages for company ${company.name}`
   );
+
   client.on("message", (message) => {
     handleIncomingMessage(client, message, company);
   });
@@ -31,19 +31,10 @@ export async function handleIncomingMessage(
 
   const phone = msg.from.split("@")[0];
 
-  const user: UserSession = {
-    userId: phone,
-    state: STATES.WELCOME,
-    lastActivity: Date.now(),
-    data: {},
-  };
-
-  // setSession(String(company.id), user);
-
   let session = await getSession(String(company.id), phone);
 
   console.log(
-    `🧩 [botMessageHandler] Session loaded for ${phone} under company ${company.name}, state: ${session.state}`
+    `🧩 [botMessageHandler] Session loaded for ${phone} under company ${company.name}, state: ${session.state}, userName: ${session.name}`
   );
 
   switch (session.state) {

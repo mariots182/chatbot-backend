@@ -6,10 +6,63 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model Company {
-  id        Int     @id @default(autoincrement())
-  name      String  @unique
-  database  String  
-  createdAt DateTime @default(now())
+  id             Int          @id @default(autoincrement())
+  name           String       @unique
+  database       String       
+  active         Boolean      @default(true)
+  phoneWhatsapp  String?
+  logs           CompanyLog[]
+  subscriptions  CompanySubscription[]
+  information    CompanyLegalInformation[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
 }
-  
+
+model CompanyLog {
+  id          Int      @id @default(autoincrement())
+  companyId   Int
+  action      String
+  description String
+  createdAt   DateTime @default(now())
+
+  company     Company  @relation(fields: [companyId], references: [id])
+}
+model CompanyLegalInformation{
+  id             Int      @id @default(autoincrement())
+  ownerName      String?
+  ownerPhone     String?
+  ownerEmail     String?
+  contactName    String?
+  contactPhone   String?
+  contactEmail   String?
+  address        String?
+  rfc            String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+  companyId      Int
+  company        Company @relation(fields: [companyId], references: [id])
+
+}
+
+model CompanySubscription {
+  id          Int      @id @default(autoincrement())
+  companyId   Int
+  subscriptionType companySuscrptionType
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company  @relation(fields: [companyId], references: [id])
+}
+
+enum companySuscrptionType {
+  BASIC
+  PREMIUM
+  ENTERPRISE
+}

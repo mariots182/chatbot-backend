@@ -1,3 +1,5 @@
+import { companySuscrptionType } from "@prisma/client";
+
 export type BotState =
   | "WELCOME"
   | "REGISTER_NAME"
@@ -26,9 +28,55 @@ export interface Company {
   id: number;
   name: string;
   database: string;
+  ownerName?: string;
+  ownerPhone?: string;
+  ownerEmail?: string;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  address?: string;
+  rfc?: string;
+  companyType: CompanyType;
+  active: boolean;
   createdAt: Date;
-  // whatsappId: string;
-  // whatsappToken: string;
-  // whatsappPhone: string;
-  // whatsappClientId: string;
+  updatedAt: Date;
+  deletedAt?: Date | null;
+}
+
+export enum CompanyType {
+  BASIC = "BASIC",
+  PREMIUM = "PREMIUM",
+  ENTERPRISE = "ENTERPRISE",
+}
+
+export interface NewCompany {
+  name: string;
+  database: string;
+  phoneWhatsapp?: string;
+  ownerName?: string;
+  ownerPhone?: string;
+  ownerEmail?: string;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  address?: string;
+  rfc?: string;
+  subscriptionType: companySuscrptionType;
+  subscriptionEndDate?: Date;
+}
+
+export interface CompanyUpdateDto {
+  name?: string;
+  database?: string;
+  ownerName?: string;
+  ownerPhone?: string;
+  ownerEmail?: string;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  address?: string;
+  rfc?: string;
+  companyType?: CompanyType;
+  active?: boolean;
+  deletedAt?: Date | null;
 }

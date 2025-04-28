@@ -1,11 +1,26 @@
 import { Router, Request, Response } from "express";
 import { centralPrisma } from "../database/prismaClientFactory";
 import { setupNewTenant } from "../database/setupNewTenant";
+import { NewCompany } from "../types";
 
 const router = Router();
 
 router.post("/company", async (req: Request, res: Response): Promise<void> => {
-  const { name } = req.body;
+  const {
+    name,
+    database,
+    phoneWhatsapp,
+    ownerName,
+    ownerPhone,
+    ownerEmail,
+    contactName,
+    contactPhone,
+    contactEmail,
+    address,
+    rfc,
+    subscriptionType,
+    subscriptionEndDate,
+  }: NewCompany = req.body;
 
   if (!name) {
     res.status(400).json({ error: "Name is required" });
