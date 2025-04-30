@@ -20,7 +20,7 @@ router.get("/:companyId", async (req: Request, res: Response) => {
       return;
     }
 
-    console.log(`🧩 [qrRoute] Cliente exsitente ${companyId}`);
+    console.log(`🧩 [qrRoute] Cliente existente ${companyId}`);
 
     const qrBase64 = await WhatsappSessionManager.generateQRCode(companyId);
 

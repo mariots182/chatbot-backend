@@ -57,6 +57,11 @@ export class WhatsappSessionManager {
     });
 
     await client.initialize();
+
+    console.log(
+      `✅ [WhatsappSessionManager] Client initialized for ${companyId}`
+    );
+
     sessions.set(companyId, client);
 
     return client;
@@ -74,6 +79,10 @@ export class WhatsappSessionManager {
         console.log(
           `🧩 [WhatsappSessionManager] QR generated for ${companyId}`
         );
+
+        if (!qr || typeof qr !== "string" || qr.trim() === "") {
+          throw new Error("Invalid QR data received");
+        }
 
         const base64 = await qrcode.toDataURL(qr);
 
@@ -105,6 +114,7 @@ export class WhatsappSessionManager {
         puppeteer: { headless: true, args: ["--no-sandbox"] },
       });
       await client.initialize();
+
       sessions.set(companyId, client);
     }
   }

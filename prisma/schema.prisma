@@ -12,14 +12,13 @@ model Company {
   name           String       @unique
   database       String       
   active         Boolean      @default(true)
-  phoneWhatsapp  String?
+  phoneWhatsapp  String
   logs           CompanyLog[]
   subscriptions  CompanySubscription[]
-  information    CompanyLegalInformation[]
+  information    CompanyLegalInformation[]  
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
-
 }
 
 model CompanyLog {

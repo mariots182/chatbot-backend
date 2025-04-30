@@ -4,7 +4,7 @@ import { UserSession } from "../types";
 import { SESSION_TTL } from "./constants";
 
 const sessions = new Map<string, UserSession>();
-const BASE_SESSION_PATH = path.resolve(__dirname, "../../sessions"); // Ajusta según tu estructura real
+const BASE_SESSION_PATH = path.resolve(__dirname, "../../sessions");
 
 async function ensureDirectoryExists(dirPath: string) {
   try {

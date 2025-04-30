@@ -2,25 +2,12 @@ import { Router, Request, Response } from "express";
 import { centralPrisma } from "../database/prismaClientFactory";
 import { setupNewTenant } from "../database/setupNewTenant";
 import { NewCompany } from "../types";
+import { WhatsappSessionManager } from "../services/whatsapp/whatsappSessionManager";
 
 const router = Router();
 
 router.post("/company", async (req: Request, res: Response): Promise<void> => {
-  const {
-    name,
-    database,
-    phoneWhatsapp,
-    ownerName,
-    ownerPhone,
-    ownerEmail,
-    contactName,
-    contactPhone,
-    contactEmail,
-    address,
-    rfc,
-    subscriptionType,
-    subscriptionEndDate,
-  }: NewCompany = req.body;
+  const { name, phoneWhatsapp }: NewCompany = req.body;
 
   if (!name) {
     res.status(400).json({ error: "Name is required" });
@@ -30,8 +17,9 @@ router.post("/company", async (req: Request, res: Response): Promise<void> => {
 
   const company = await centralPrisma.company.create({
     data: {
-      name: name,
+      name,
       database: name.replace(/[^a-zA-Z0-9_]/g, "_"),
+      phoneWhatsapp,
     },
   });
 
@@ -46,6 +34,9 @@ router.post("/company", async (req: Request, res: Response): Promise<void> => {
       console.log(
         `✅ [companyRoute] Tenant setup completed for company: ${company.name}`
       );
+
+      WhatsappSessionManager.getOrCreateClient(company.database);
+
       res.json({ message: "Company registered", company });
     })
     .catch((error) => {

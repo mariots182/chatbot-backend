@@ -51,18 +51,7 @@ export enum CompanyType {
 
 export interface NewCompany {
   name: string;
-  database: string;
-  phoneWhatsapp?: string;
-  ownerName?: string;
-  ownerPhone?: string;
-  ownerEmail?: string;
-  contactName?: string;
-  contactPhone?: string;
-  contactEmail?: string;
-  address?: string;
-  rfc?: string;
-  subscriptionType: companySuscrptionType;
-  subscriptionEndDate?: Date;
+  phoneWhatsapp: string;
 }
 
 export interface CompanyUpdateDto {
