@@ -35,6 +35,16 @@ export class WhatsappSessionManager {
       return sessions.get(companyId)!;
     }
 
+    const companySessionFolder = path.join(sessionsPath, companyId);
+    if (!fs.existsSync(companySessionFolder)) {
+      console.warn(
+        `⚠️ [WhatsappSessionManager] No session folder for company ${companyId}. Creating it for first-time QR scan.`
+      );
+
+      // Crea la carpeta vacía, listo para generar QR después
+      fs.mkdirSync(companySessionFolder, { recursive: true });
+    }
+
     console.log(
       `⚡ [WhatsappSessionManager] Initializing new client for ${companyId}`
     );
@@ -49,18 +59,6 @@ export class WhatsappSessionManager {
         args: ["--no-sandbox"],
       },
     });
-
-    // const existingFolders = fs.existsSync(sessionsPath)
-    //   ? fs.readdirSync(sessionsPath)
-    //   : [];
-
-    // for (const folder of existingFolders) {
-    //   if (!validCompanyIds.includes(Number(folder))) {
-    //     const fullPath = path.join(sessionsPath, folder);
-    //     fs.rmSync(fullPath, { recursive: true, force: true });
-    //     console.log(`🧹 Removed orphaned session folder: ${folder}`);
-    //   }
-    // }
 
     client.on("ready", () => {
       console.log(`✅ [WhatsappSessionManager] Client ready for ${companyId}`);
