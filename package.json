@@ -6,10 +6,18 @@
     "migrations": "migrations/",
     "schema": "prisma/schema.prisma"
   },
+  "ts-node-dev": {
+    "ignore-watch": [
+      "generated",
+      "sessions",
+      "prisma"
+    ]
+  },
   "scripts": {
     "prisma:gen:central": "prisma generate --schema=prisma/schema.prisma",
     "prisma:gen:tenant": "prisma generate --schema=prisma/tenant/schema.prisma",
-    "dev": "ts-node-dev --respawn --transpile-only ./src/server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only --ignore-watch generated --ignore-watch sessions --ignore-watch prisma ./src/server.ts",
+    "start": "npm run prisma:generate && npm run dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

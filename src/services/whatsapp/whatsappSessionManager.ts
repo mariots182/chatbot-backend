@@ -10,21 +10,21 @@ const sessions: Map<string, Client> = new Map();
 const sessionsPath = path.join(__dirname, "../../../sessions");
 
 export class WhatsappSessionManager {
-  static getSessionPath(companyId: string): string {
-    if (!companyId) {
-      console.error(
-        `❌ [WhatsappSessionManager] Company ID is required to get session path`
-      );
+  // static getSessionPath(companyId: string): string {
+  //   if (!companyId) {
+  //     console.error(
+  //       `❌ [WhatsappSessionManager] Company ID is required to get session path`
+  //     );
 
-      // throw new Error("Company ID is required to get session path");
-    }
+  //     // throw new Error("Company ID is required to get session path");
+  //   }
 
-    console.log(
-      `🧩 [WhatsappSessionManager] Getting session path for company ID: ${companyId}`
-    );
+  //   console.log(
+  //     `🧩 [WhatsappSessionManager] Getting session path for company ID: ${companyId}`
+  //   );
 
-    return path.join(__dirname, "../../../sessions", companyId);
-  }
+  //   return path.join(__dirname, "../../../sessions", companyId);
+  // }
 
   static async getOrCreateClient(companyId: string): Promise<Client> {
     if (sessions.has(companyId)) {
@@ -51,8 +51,8 @@ export class WhatsappSessionManager {
 
     const client = new Client({
       authStrategy: new LocalAuth({
-        clientId: companyId,
-        dataPath: sessionsPath, // <== CAMBIO CLAVE
+        // clientId: companyId,
+        dataPath: path.join(__dirname, "../../../sessions", companyId), // <== CAMBIO CLAVE
       }),
       puppeteer: {
         headless: true,
@@ -60,6 +60,19 @@ export class WhatsappSessionManager {
       },
     });
 
+    const companies = await centralPrisma.company.findMany();
+    const validCompanyIds = companies.map((c) => c.id.toString());
+    const existingFolders = fs.existsSync(sessionsPath)
+      ? fs.readdirSync(sessionsPath)
+      : [];
+
+    for (const folder of existingFolders) {
+      if (!validCompanyIds.includes(folder)) {
+        const fullPath = path.join(sessionsPath, folder);
+        fs.rmSync(fullPath, { recursive: true, force: true });
+        console.log(`🧹 Removed orphaned session folder: ${folder}`);
+      }
+    }
     client.on("ready", () => {
       console.log(`✅ [WhatsappSessionManager] Client ready for ${companyId}`);
     });
@@ -151,30 +164,47 @@ export class WhatsappSessionManager {
     }
 
     // ✅ CARGAR SOLO SESIONES VÁLIDAS
-    for (const companyId of validCompanyIds) {
-      const companySessionPath = path.join(sessionsPath, String(companyId));
-      if (!fs.existsSync(companySessionPath)) {
-        console.warn(
-          `⚠️ [WhatsappSessionManager] Skipping session for ${companyId}, no folder found`
+    // for (const companyId of validCompanyIds) {
+    //   const companySessionPath = path.join(sessionsPath, String(companyId));
+    //   if (!fs.existsSync(companySessionPath)) {
+    //     console.warn(
+    //       `⚠️ [WhatsappSessionManager] Skipping session for ${companyId}, no folder found`
+    //     );
+    //     continue;
+    //   }
+
+    //   console.log(
+    //     `🟢 [WhatsappSessionManager] Initializing session for ${companyId}`
+    //   );
+
+    //   const client = new Client({
+    //     authStrategy: new LocalAuth({
+    //       // clientId: String(companyId),
+    //       dataPath: path.join(
+    //         __dirname,
+    //         "../../../sessions",
+    //         String(companyId)
+    //       ),
+    //     }),
+    //     puppeteer: { headless: true, args: ["--no-sandbox"] },
+    //   });
+
+    //   await client.initialize();
+
+    //   // TODO: Store client in sessions map
+    // }
+    for (const company of companies) {
+      try {
+        const client = await this.getOrCreateClient(company.id.toString());
+        console.log(
+          `✅ [WhatsappSessionManager] Session ready for company ${company.id}`
         );
-        continue;
+      } catch (err) {
+        console.error(
+          `❌ [WhatsappSessionManager] Failed to initialize session for ${company.id}:`,
+          err
+        );
       }
-
-      console.log(
-        `🟢 [WhatsappSessionManager] Initializing session for ${companyId}`
-      );
-
-      const client = new Client({
-        authStrategy: new LocalAuth({
-          clientId: String(companyId),
-          dataPath: sessionsPath,
-        }),
-        puppeteer: { headless: true, args: ["--no-sandbox"] },
-      });
-
-      await client.initialize();
-
-      // TODO: Store client in sessions map
     }
   }
 
@@ -194,6 +224,7 @@ export class WhatsappSessionManager {
     console.log(
       `🧩 [WhatsappSessionManager] Loading sessions from database, ${sessions}`
     );
+    await this.loadSessions();
 
     if (sessions.size === 0) {
       console.warn(
@@ -202,8 +233,6 @@ export class WhatsappSessionManager {
 
       return;
     }
-
-    await this.loadSessions();
 
     for (let [companyId, client] of sessions) {
       console.log(

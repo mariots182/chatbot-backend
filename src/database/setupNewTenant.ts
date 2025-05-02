@@ -1,5 +1,6 @@
 import pgtools from "pgtools";
 import path from "path";
+import fs from "fs";
 import { execSync } from "child_process";
 import { Company } from "./utils";
 
@@ -14,6 +15,11 @@ export async function setupNewTenant(tenant: Company): Promise<void> {
   const dbName = `tenant_${tenant.database.replace(/[^a-zA-Z0-9_]/g, "_")}`;
   const fullTenantUrl = `${process.env.PG_BASE_URL}${dbName}`;
   const schemaPath = path.join(__dirname, "../../prisma/tenant/schema.prisma");
+
+  const outputDir = path.join(__dirname, "../../generated/tenant/runtime");
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
 
   try {
     await pgtools.createdb(baseConfig, dbName);
