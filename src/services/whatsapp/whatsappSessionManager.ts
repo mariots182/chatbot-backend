@@ -7,6 +7,7 @@ import { centralPrisma } from "../../database/prismaClientFactory";
 import { Company } from "@prisma/client";
 
 const sessions: Map<string, Client> = new Map();
+const sessionsPath = path.join(__dirname, "../../../sessions");
 
 export class WhatsappSessionManager {
   static getSessionPath(companyId: string): string {
@@ -41,13 +42,25 @@ export class WhatsappSessionManager {
     const client = new Client({
       authStrategy: new LocalAuth({
         clientId: companyId,
-        dataPath: this.getSessionPath(companyId),
+        dataPath: sessionsPath, // <== CAMBIO CLAVE
       }),
       puppeteer: {
         headless: true,
         args: ["--no-sandbox"],
       },
     });
+
+    // const existingFolders = fs.existsSync(sessionsPath)
+    //   ? fs.readdirSync(sessionsPath)
+    //   : [];
+
+    // for (const folder of existingFolders) {
+    //   if (!validCompanyIds.includes(Number(folder))) {
+    //     const fullPath = path.join(sessionsPath, folder);
+    //     fs.rmSync(fullPath, { recursive: true, force: true });
+    //     console.log(`🧹 Removed orphaned session folder: ${folder}`);
+    //   }
+    // }
 
     client.on("ready", () => {
       console.log(`✅ [WhatsappSessionManager] Client ready for ${companyId}`);
@@ -113,62 +126,57 @@ export class WhatsappSessionManager {
   }
 
   static async loadSessions() {
-    const sessionsPath = path.join(__dirname, "../../../sessions");
-    const directories = fs.readdirSync(sessionsPath);
-
     console.log(
-      `🧩 [WhatsappSessionManager] Loading sessions from ${sessionsPath}`
+      `🧩 [WhatsappSessionManager] Checking sessions in ${sessionsPath}`
     );
 
-    console.log(
-      `🧩 [WhatsappSessionManager] Found ${directories.length} directories`
-    );
+    const companies = await centralPrisma.company.findMany();
+    const validCompanyIds = companies.map((c) => c.id);
+    const validCompanyDBName = companies.map((c) => c.database);
 
-    if (directories.length === 0) {
-      console.warn(
-        `⚠️ [WhatsappSessionManager] No session directories found in ${sessionsPath}`
-      );
-      return;
+    const existingFolders = fs.existsSync(sessionsPath)
+      ? fs.readdirSync(sessionsPath)
+      : [];
+
+    // 🔥 LIMPIA CARPETAS HUÉRFANAS
+    for (const folder of existingFolders) {
+      if (
+        !validCompanyIds.includes(Number(folder)) ||
+        !validCompanyDBName.includes(folder)
+      ) {
+        const fullPath = path.join(sessionsPath, folder);
+        fs.rmSync(fullPath, { recursive: true, force: true });
+        console.log(
+          `🧹 [WhatsappSessionManager] Removed orphaned session folder: ${folder}`
+        );
+      }
     }
 
-    for (const dir of directories) {
-      const companyId = dir;
-      const company = await centralPrisma.company.findUnique({
-        where: { id: Number(companyId) },
-      });
-
-      if (!company) {
+    // ✅ CARGAR SOLO SESIONES VÁLIDAS
+    for (const companyId of validCompanyIds) {
+      const companySessionPath = path.join(sessionsPath, String(companyId));
+      if (!fs.existsSync(companySessionPath)) {
         console.warn(
-          `⚠️ [WhatsappSessionManager] Company not found in DB: ${companyId}`
+          `⚠️ [WhatsappSessionManager] Skipping session for ${companyId}, no folder found`
         );
-
-        // Eliminar carpeta huérfana si no está asociada a una empresa real
-        const fullPath = path.join(sessionsPath, companyId);
-        if (fs.existsSync(fullPath)) {
-          fs.rmSync(fullPath, { recursive: true, force: true });
-          console.log(
-            `🧹 [WhatsappSessionManager] Removed orphaned session folder: ${companyId}`
-          );
-        }
-
         continue;
       }
 
       console.log(
-        `🧩 [WhatsappSessionManager] Loading session for company ID: ${dir}`
+        `🟢 [WhatsappSessionManager] Initializing session for ${companyId}`
       );
 
       const client = new Client({
         authStrategy: new LocalAuth({
-          clientId: companyId,
-          dataPath: path.join(sessionsPath, companyId),
+          clientId: String(companyId),
+          dataPath: sessionsPath,
         }),
         puppeteer: { headless: true, args: ["--no-sandbox"] },
       });
 
       await client.initialize();
 
-      sessions.set(companyId, client);
+      // TODO: Store client in sessions map
     }
   }
 
@@ -184,6 +192,18 @@ export class WhatsappSessionManager {
     console.log(
       `🧩 [WhatsappSessionManager] Starting all bots for ${sessions.size} companies`
     );
+
+    console.log(
+      `🧩 [WhatsappSessionManager] Loading sessions from database, ${sessions}`
+    );
+
+    if (sessions.size === 0) {
+      console.warn(
+        `⚠️ [WhatsappSessionManager] No sessions found. Please initialize clients first.`
+      );
+
+      return;
+    }
 
     await this.loadSessions();
 
