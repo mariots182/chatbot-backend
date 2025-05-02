@@ -138,7 +138,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/mario_ts/projects/chatbot-backend/src/generated/tenant",
+      "value": "/Users/mario_ts/projects/chatbot-backend/generated/tenant",
       "fromEnvVar": null
     },
     "config": {
@@ -156,26 +156,27 @@ const config = {
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../../../.env"
+    "rootEnvPath": "../../.env",
+    "schemaEnvPath": "../../.env"
   },
-  "relativePath": "../../../prisma/tenant",
+  "relativePath": "../../prisma/tenant",
   "clientVersion": "6.6.0",
   "engineVersion": "f676762280b54cd07c770017ed3711ddde35f37a",
   "datasourceNames": [
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": "postgresql://postgres:M4r10182@localhost:5432/tenant_Empresa_IronChef"
+        "value": null
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../../src/generated/tenant\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Customer {\n  id        Int      @id @default(autoincrement())\n  name      String\n  phone     String   @unique\n  address   String\n  createdAt DateTime @default(now())\n  orders    Order[]\n}\n\nmodel Order {\n  id         Int      @id @default(autoincrement())\n  customerId Int\n  quantity   Int\n  createdAt  DateTime @default(now())\n  status     String   @default(\"pending\")\n  notes      String?\n  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n}\n",
-  "inlineSchemaHash": "21413f710c5c715aadbab4d758acc2dbbe2300c53f7115068b2f474c033bf736",
+  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../../generated/tenant\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Customer {\n  id        Int      @id @default(autoincrement())\n  name      String\n  phone     String   @unique\n  address   String\n  createdAt DateTime @default(now())\n  orders    Order[]\n}\n\nmodel Order {\n  id         Int      @id @default(autoincrement())\n  customerId Int\n  quantity   Int\n  createdAt  DateTime @default(now())\n  status     String   @default(\"pending\")\n  notes      String?\n  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)\n}\n",
+  "inlineSchemaHash": "d9b9e93acff876ca847a77aca85c33863f6a443ececaa49dc510c02ac76c6247",
   "copyEngine": true
 }
 
@@ -184,8 +185,8 @@ const fs = require('fs')
 config.dirname = __dirname
 if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
   const alternativePaths = [
-    "src/generated/tenant",
     "generated/tenant",
+    "tenant",
   ]
   
   const alternativePath = alternativePaths.find((altPath) => {
@@ -215,7 +216,7 @@ Object.assign(exports, Prisma)
 
 // file annotations for bundling tools to include these files
 path.join(__dirname, "libquery_engine-darwin-arm64.dylib.node");
-path.join(process.cwd(), "src/generated/tenant/libquery_engine-darwin-arm64.dylib.node")
+path.join(process.cwd(), "generated/tenant/libquery_engine-darwin-arm64.dylib.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
-path.join(process.cwd(), "src/generated/tenant/schema.prisma")
+path.join(process.cwd(), "generated/tenant/schema.prisma")

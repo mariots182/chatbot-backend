@@ -10,6 +10,18 @@ const sessions: Map<string, Client> = new Map();
 
 export class WhatsappSessionManager {
   static getSessionPath(companyId: string): string {
+    if (!companyId) {
+      console.error(
+        `❌ [WhatsappSessionManager] Company ID is required to get session path`
+      );
+
+      // throw new Error("Company ID is required to get session path");
+    }
+
+    console.log(
+      `🧩 [WhatsappSessionManager] Getting session path for company ID: ${companyId}`
+    );
+
     return path.join(__dirname, "../../../sessions", companyId);
   }
 
@@ -104,8 +116,48 @@ export class WhatsappSessionManager {
     const sessionsPath = path.join(__dirname, "../../../sessions");
     const directories = fs.readdirSync(sessionsPath);
 
+    console.log(
+      `🧩 [WhatsappSessionManager] Loading sessions from ${sessionsPath}`
+    );
+
+    console.log(
+      `🧩 [WhatsappSessionManager] Found ${directories.length} directories`
+    );
+
+    if (directories.length === 0) {
+      console.warn(
+        `⚠️ [WhatsappSessionManager] No session directories found in ${sessionsPath}`
+      );
+      return;
+    }
+
     for (const dir of directories) {
       const companyId = dir;
+      const company = await centralPrisma.company.findUnique({
+        where: { id: Number(companyId) },
+      });
+
+      if (!company) {
+        console.warn(
+          `⚠️ [WhatsappSessionManager] Company not found in DB: ${companyId}`
+        );
+
+        // Eliminar carpeta huérfana si no está asociada a una empresa real
+        const fullPath = path.join(sessionsPath, companyId);
+        if (fs.existsSync(fullPath)) {
+          fs.rmSync(fullPath, { recursive: true, force: true });
+          console.log(
+            `🧹 [WhatsappSessionManager] Removed orphaned session folder: ${companyId}`
+          );
+        }
+
+        continue;
+      }
+
+      console.log(
+        `🧩 [WhatsappSessionManager] Loading session for company ID: ${dir}`
+      );
+
       const client = new Client({
         authStrategy: new LocalAuth({
           clientId: companyId,
@@ -113,6 +165,7 @@ export class WhatsappSessionManager {
         }),
         puppeteer: { headless: true, args: ["--no-sandbox"] },
       });
+
       await client.initialize();
 
       sessions.set(companyId, client);
@@ -120,6 +173,10 @@ export class WhatsappSessionManager {
   }
 
   static startListening(client: Client, company: Company) {
+    console.log(
+      `🧩 [WhatsappSessionManager] Starting listening for company ${company.id}`
+    );
+
     setupMessageListener(client, company);
   }
 
