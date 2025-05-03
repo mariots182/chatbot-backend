@@ -62,7 +62,7 @@ export class WhatsappSessionManager {
 
     const client = this.createClient(company);
 
-    await client.initialize();
+    client.initialize();
 
     console.log(
       `✅ [WhatsappSessionManager][getOrCreateClient] Client initialized for ${String(
@@ -229,7 +229,7 @@ export class WhatsappSessionManager {
     }
   }
 
-  static async createClient(company: Company) {
+  static createClient(company: Company) {
     return new Client({
       authStrategy: new LocalAuth({
         clientId: company.database,
