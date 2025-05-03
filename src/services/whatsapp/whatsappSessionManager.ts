@@ -13,23 +13,27 @@ const sessions: Map<string, Client> = new Map();
 const sessionsPath = path.join(__dirname, "../../../sessions");
 
 export class WhatsappSessionManager {
-  static async getOrCreateClient(companyId: string): Promise<Client> {
+  static async getOrCreateClient(company: Company): Promise<Client> {
     console.log(
       `🧩 [WhatsappSessionManager][getOrCreateClient] sessions: ${sessions.size}`
     );
 
-    if (sessions.has(companyId)) {
+    if (sessions.has(String(company.id))) {
       console.log(
-        `✅ [WhatsappSessionManager][getOrCreateClient] Client already initialized for ${companyId}`
+        `✅ [WhatsappSessionManager][getOrCreateClient] Client already initialized for ${String(
+          company.id
+        )}`
       );
 
-      return sessions.get(companyId)!;
+      return sessions.get(String(company.id))!;
     }
 
-    const companySessionFolder = path.join(sessionsPath, companyId);
+    const companySessionFolder = path.join(sessionsPath, String(company.id));
     if (!fs.existsSync(companySessionFolder)) {
       console.warn(
-        `⚠️ [WhatsappSessionManager][getOrCreateClient] No session folder for company ${companyId}. Creating it for first-time QR scan.`
+        `⚠️ [WhatsappSessionManager][getOrCreateClient] No session folder for company ${String(
+          company.id
+        )}. Creating it for first-time QR scan.`
       );
 
       // Crea la carpeta vacía, listo para generar QR después
@@ -37,19 +41,10 @@ export class WhatsappSessionManager {
     }
 
     console.log(
-      `⚡ [WhatsappSessionManager][getOrCreateClient] Initializing new client for ${companyId}`
+      `⚡ [WhatsappSessionManager][getOrCreateClient] Initializing new client for ${String(
+        company.id
+      )}`
     );
-
-    const client = new Client({
-      authStrategy: new LocalAuth({
-        // clientId: companyId,
-        dataPath: path.join(__dirname, "../../../sessions", companyId), // <== CAMBIO CLAVE
-      }),
-      puppeteer: {
-        headless: true,
-        args: ["--no-sandbox"],
-      },
-    });
 
     const companies = await getCompanies();
     const validCompanyIds = companies.map((c) => c.id.toString());
@@ -64,40 +59,24 @@ export class WhatsappSessionManager {
         console.log(`🧹 Removed orphaned session folder: ${folder}`);
       }
     }
-    client.on("ready", () => {
-      console.log(
-        `✅ [WhatsappSessionManager][getOrCreateClient] Client ready for ${companyId}`
-      );
-    });
 
-    client.on("auth_failure", (msg) => {
-      console.error(
-        `❌ [WhatsappSessionManager][getOrCreateClient] Auth failure for ${companyId}:`,
-        msg
-      );
-    });
-
-    client.on("disconnected", (reason) => {
-      console.warn(
-        `⚠️ [WhatsappSessionManager][getOrCreateClient] Disconnected ${companyId}:`,
-        reason
-      );
-      sessions.delete(companyId);
-    });
+    const client = this.createClient(company);
 
     await client.initialize();
 
     console.log(
-      `✅ [WhatsappSessionManager][getOrCreateClient] Client initialized for ${companyId}`
+      `✅ [WhatsappSessionManager][getOrCreateClient] Client initialized for ${String(
+        company.id
+      )}`
     );
 
-    sessions.set(companyId, client);
+    sessions.set(String(company.id), client);
 
     return client;
   }
 
-  static async generateQRCode(companyId: string): Promise<string> {
-    const client = await this.getOrCreateClient(companyId);
+  static async generateQRCode(company: Company): Promise<string> {
+    const client = await this.getOrCreateClient(company);
 
     return new Promise((resolve, reject) => {
       if (client.info && client.info.wid) {
@@ -106,7 +85,9 @@ export class WhatsappSessionManager {
 
       client.on("qr", async (qr) => {
         console.log(
-          `🧩 [WhatsappSessionManager][generateQRCode] QR generated for ${companyId}`
+          `🧩 [WhatsappSessionManager][generateQRCode] QR generated for ${String(
+            company.id
+          )}`
         );
 
         if (client.info) {
@@ -127,7 +108,9 @@ export class WhatsappSessionManager {
 
       client.on("ready", () => {
         console.log(
-          `✅ [WhatsappSessionManager][generateQRCode] Client already authenticated for ${companyId}`
+          `✅ [WhatsappSessionManager][generateQRCode] Client already authenticated for ${String(
+            company.id
+          )}`
         );
         if (client.pupPage) {
           return client.emit("qr", client.pupPage);
@@ -176,9 +159,9 @@ export class WhatsappSessionManager {
           `🧩 [WhatsappSessionManager][loadSessions] Loading session for company ${company.id}`
         );
 
-        // const client = await this.getOrCreateClient(company.id.toString());
+        // const client = await this.getOrCreateClient(String(company.id));
 
-        this.getOrCreateClient(company.id.toString());
+        this.getOrCreateClient(company);
 
         console.log(
           `✅ [WhatsappSessionManager][loadSessions] Session ready for company ${company.id}`
@@ -244,5 +227,49 @@ export class WhatsappSessionManager {
 
       this.startListening(client, company);
     }
+  }
+
+  static async createClient(company: Company) {
+    return new Client({
+      authStrategy: new LocalAuth({
+        clientId: company.database,
+        dataPath: path.join(__dirname, "../../../sessions", String(company.id)),
+      }),
+      puppeteer: {
+        headless: true,
+        args: ["--no-sandbox"],
+      },
+    });
+  }
+
+  static async getClient() {}
+
+  static clientListeners(client: Client, company: Company) {
+    client.on("ready", () => {
+      console.log(
+        `✅ [WhatsappSessionManager][getOrCreateClient] Client ready for ${String(
+          company.id
+        )}`
+      );
+    });
+
+    client.on("auth_failure", (msg) => {
+      console.error(
+        `❌ [WhatsappSessionManager][getOrCreateClient] Auth failure for ${String(
+          company.id
+        )}:`,
+        msg
+      );
+    });
+
+    client.on("disconnected", (reason) => {
+      console.warn(
+        `⚠️ [WhatsappSessionManager][getOrCreateClient] Disconnected ${String(
+          company.id
+        )}:`,
+        reason
+      );
+      sessions.delete(String(company.id));
+    });
   }
 }

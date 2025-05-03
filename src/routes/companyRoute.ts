@@ -35,7 +35,7 @@ router.post("/company", async (req: Request, res: Response): Promise<void> => {
         `✅ [companyRoute] Tenant setup completed for company: ${company.name}`
       );
 
-      WhatsappSessionManager.getOrCreateClient(company.id.toString());
+      WhatsappSessionManager.getOrCreateClient(company);
 
       res.json({ message: "Company registered", company });
     })
