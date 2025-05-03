@@ -3,33 +3,24 @@ import qrcode from "qrcode";
 import path from "path";
 import fs from "fs";
 import { setupMessageListener } from "../../bot/botMessageHandler";
-import { centralPrisma } from "../../database/prismaClientFactory";
+import {
+  centralPrisma,
+  getCompanies,
+} from "../../database/prismaClientFactory";
 import { Company } from "@prisma/client";
 
 const sessions: Map<string, Client> = new Map();
 const sessionsPath = path.join(__dirname, "../../../sessions");
 
 export class WhatsappSessionManager {
-  // static getSessionPath(companyId: string): string {
-  //   if (!companyId) {
-  //     console.error(
-  //       `❌ [WhatsappSessionManager] Company ID is required to get session path`
-  //     );
-
-  //     // throw new Error("Company ID is required to get session path");
-  //   }
-
-  //   console.log(
-  //     `🧩 [WhatsappSessionManager] Getting session path for company ID: ${companyId}`
-  //   );
-
-  //   return path.join(__dirname, "../../../sessions", companyId);
-  // }
-
   static async getOrCreateClient(companyId: string): Promise<Client> {
+    console.log(
+      `🧩 [WhatsappSessionManager][getOrCreateClient] sessions: ${sessions.size}`
+    );
+
     if (sessions.has(companyId)) {
       console.log(
-        `✅ [WhatsappSessionManager] Client already initialized for ${companyId}`
+        `✅ [WhatsappSessionManager][getOrCreateClient] Client already initialized for ${companyId}`
       );
 
       return sessions.get(companyId)!;
@@ -38,7 +29,7 @@ export class WhatsappSessionManager {
     const companySessionFolder = path.join(sessionsPath, companyId);
     if (!fs.existsSync(companySessionFolder)) {
       console.warn(
-        `⚠️ [WhatsappSessionManager] No session folder for company ${companyId}. Creating it for first-time QR scan.`
+        `⚠️ [WhatsappSessionManager][getOrCreateClient] No session folder for company ${companyId}. Creating it for first-time QR scan.`
       );
 
       // Crea la carpeta vacía, listo para generar QR después
@@ -46,7 +37,7 @@ export class WhatsappSessionManager {
     }
 
     console.log(
-      `⚡ [WhatsappSessionManager] Initializing new client for ${companyId}`
+      `⚡ [WhatsappSessionManager][getOrCreateClient] Initializing new client for ${companyId}`
     );
 
     const client = new Client({
@@ -60,7 +51,7 @@ export class WhatsappSessionManager {
       },
     });
 
-    const companies = await centralPrisma.company.findMany();
+    const companies = await getCompanies();
     const validCompanyIds = companies.map((c) => c.id.toString());
     const existingFolders = fs.existsSync(sessionsPath)
       ? fs.readdirSync(sessionsPath)
@@ -74,19 +65,21 @@ export class WhatsappSessionManager {
       }
     }
     client.on("ready", () => {
-      console.log(`✅ [WhatsappSessionManager] Client ready for ${companyId}`);
+      console.log(
+        `✅ [WhatsappSessionManager][getOrCreateClient] Client ready for ${companyId}`
+      );
     });
 
     client.on("auth_failure", (msg) => {
       console.error(
-        `❌ [WhatsappSessionManager] Auth failure for ${companyId}:`,
+        `❌ [WhatsappSessionManager][getOrCreateClient] Auth failure for ${companyId}:`,
         msg
       );
     });
 
     client.on("disconnected", (reason) => {
       console.warn(
-        `⚠️ [WhatsappSessionManager] Disconnected ${companyId}:`,
+        `⚠️ [WhatsappSessionManager][getOrCreateClient] Disconnected ${companyId}:`,
         reason
       );
       sessions.delete(companyId);
@@ -95,7 +88,7 @@ export class WhatsappSessionManager {
     await client.initialize();
 
     console.log(
-      `✅ [WhatsappSessionManager] Client initialized for ${companyId}`
+      `✅ [WhatsappSessionManager][getOrCreateClient] Client initialized for ${companyId}`
     );
 
     sessions.set(companyId, client);
@@ -113,8 +106,15 @@ export class WhatsappSessionManager {
 
       client.on("qr", async (qr) => {
         console.log(
-          `🧩 [WhatsappSessionManager] QR generated for ${companyId}`
+          `🧩 [WhatsappSessionManager][generateQRCode] QR generated for ${companyId}`
         );
+
+        if (client.info) {
+          console.log(
+            `[WhatsappSessionManager][generateQRCode] Ignoring QR: client already authenticated`
+          );
+          return;
+        }
 
         if (!qr || typeof qr !== "string" || qr.trim() === "") {
           throw new Error("Invalid QR data received");
@@ -127,7 +127,7 @@ export class WhatsappSessionManager {
 
       client.on("ready", () => {
         console.log(
-          `✅ [WhatsappSessionManager] Client already authenticated for ${companyId}`
+          `✅ [WhatsappSessionManager][generateQRCode] Client already authenticated for ${companyId}`
         );
         if (client.pupPage) {
           return client.emit("qr", client.pupPage);
@@ -138,70 +138,54 @@ export class WhatsappSessionManager {
 
   static async loadSessions() {
     console.log(
-      `🧩 [WhatsappSessionManager] Checking sessions in ${sessionsPath}`
+      `🧩 [WhatsappSessionManager][loadSessions] Checking sessions in ${sessionsPath}`
     );
 
     const companies = await centralPrisma.company.findMany();
-    const validCompanyIds = companies.map((c) => c.id);
-    const validCompanyDBName = companies.map((c) => c.database);
+    // const validCompanyIds = companies.map((c) => c.id);
+    // const existingFolders = fs.existsSync(sessionsPath)
+    //   ? fs.readdirSync(sessionsPath)
+    //   : [];
 
-    const existingFolders = fs.existsSync(sessionsPath)
-      ? fs.readdirSync(sessionsPath)
-      : [];
+    // console.log(
+    //   `🧩 [WhatsappSessionManager][loadSessions] Existing folders: ${existingFolders}`
+    // );
+    // console.log(
+    //   `🧩 [WhatsappSessionManager][loadSessions] Valid company IDs: ${validCompanyIds}`
+    // );
 
-    // 🔥 LIMPIA CARPETAS HUÉRFANAS
-    for (const folder of existingFolders) {
-      if (
-        !validCompanyIds.includes(Number(folder)) ||
-        !validCompanyDBName.includes(folder)
-      ) {
-        const fullPath = path.join(sessionsPath, folder);
-        fs.rmSync(fullPath, { recursive: true, force: true });
-        console.log(
-          `🧹 [WhatsappSessionManager] Removed orphaned session folder: ${folder}`
-        );
-      }
-    }
-
-    // ✅ CARGAR SOLO SESIONES VÁLIDAS
-    // for (const companyId of validCompanyIds) {
-    //   const companySessionPath = path.join(sessionsPath, String(companyId));
-    //   if (!fs.existsSync(companySessionPath)) {
-    //     console.warn(
-    //       `⚠️ [WhatsappSessionManager] Skipping session for ${companyId}, no folder found`
-    //     );
-    //     continue;
-    //   }
-
+    // for (const folder of existingFolders) {
     //   console.log(
-    //     `🟢 [WhatsappSessionManager] Initializing session for ${companyId}`
+    //     `🧩 [WhatsappSessionManager][loadSessions] Checking folder: ${folder}`
     //   );
 
-    //   const client = new Client({
-    //     authStrategy: new LocalAuth({
-    //       // clientId: String(companyId),
-    //       dataPath: path.join(
-    //         __dirname,
-    //         "../../../sessions",
-    //         String(companyId)
-    //       ),
-    //     }),
-    //     puppeteer: { headless: true, args: ["--no-sandbox"] },
-    //   });
+    //   if (!validCompanyIds.includes(Number(folder))) {
+    //     const fullPath = path.join(sessionsPath, folder);
 
-    //   await client.initialize();
+    //     fs.rmSync(fullPath, { recursive: true, force: true });
 
-    //   // TODO: Store client in sessions map
+    //     console.log(
+    //       `🧹 [WhatsappSessionManager][loadSessions] Removed orphaned session folder: ${folder}`
+    //     );
+    //   }
     // }
+
     for (const company of companies) {
       try {
-        const client = await this.getOrCreateClient(company.id.toString());
         console.log(
-          `✅ [WhatsappSessionManager] Session ready for company ${company.id}`
+          `🧩 [WhatsappSessionManager][loadSessions] Loading session for company ${company.id}`
+        );
+
+        // const client = await this.getOrCreateClient(company.id.toString());
+
+        this.getOrCreateClient(company.id.toString());
+
+        console.log(
+          `✅ [WhatsappSessionManager][loadSessions] Session ready for company ${company.id}`
         );
       } catch (err) {
         console.error(
-          `❌ [WhatsappSessionManager] Failed to initialize session for ${company.id}:`,
+          `❌ [WhatsappSessionManager][loadSessions] Failed to initialize session for ${company.id}:`,
           err
         );
       }
@@ -210,7 +194,7 @@ export class WhatsappSessionManager {
 
   static startListening(client: Client, company: Company) {
     console.log(
-      `🧩 [WhatsappSessionManager] Starting listening for company ${company.id}`
+      `🧩 [WhatsappSessionManager][startListening] Starting listening for company ${company.id}`
     );
 
     setupMessageListener(client, company);
@@ -218,17 +202,18 @@ export class WhatsappSessionManager {
 
   static async startAllBots() {
     console.log(
-      `🧩 [WhatsappSessionManager] Starting all bots for ${sessions.size} companies`
+      `🧩 [WhatsappSessionManager][startAllBots] Starting all bots for ${sessions.size} companies`
     );
 
     console.log(
-      `🧩 [WhatsappSessionManager] Loading sessions from database, ${sessions}`
+      `🧩 [WhatsappSessionManager][startAllBots] Loading sessions from database, ${sessions}`
     );
+
     await this.loadSessions();
 
     if (sessions.size === 0) {
       console.warn(
-        `⚠️ [WhatsappSessionManager] No sessions found. Please initialize clients first.`
+        `⚠️ [WhatsappSessionManager][startAllBots] No sessions found. Please initialize clients first.`
       );
 
       return;
@@ -236,7 +221,7 @@ export class WhatsappSessionManager {
 
     for (let [companyId, client] of sessions) {
       console.log(
-        `🧩 [WhatsappSessionManager] Starting bot for company ${companyId}`
+        `🧩 [WhatsappSessionManager][startAllBots] Starting bot for company ${companyId}`
       );
 
       const company = await centralPrisma.company.findUnique({
@@ -245,16 +230,16 @@ export class WhatsappSessionManager {
 
       if (!company) {
         console.error(
-          `❌ [WhatsappSessionManager] Company with ID ${companyId} not found`
+          `❌ [WhatsappSessionManager][startAllBots] Company with ID ${companyId} not found`
         );
 
         throw new Error(
-          `❌ [WhatsappSessionManager] Company with ID ${companyId} not found`
+          `❌ [WhatsappSessionManager][startAllBots] Company with ID ${companyId} not found`
         );
       }
 
       console.log(
-        `🧩 [WhatsappSessionManager] Company found ID: ${company.id}, Name: ${company.name}, Database: ${company.database} `
+        `🧩 [WhatsappSessionManager][startAllBots] Company found ID: ${company.id}, Name: ${company.name}, Database: ${company.database} `
       );
 
       this.startListening(client, company);

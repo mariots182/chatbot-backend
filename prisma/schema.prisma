@@ -12,6 +12,8 @@ model Company {
   name           String       @unique
   database       String       
   active         Boolean      @default(true)
+  session        Boolean      @default(false)
+  scannedQR      Boolean      @default(false)
   phoneWhatsapp  String
   logs           CompanyLog[]
   subscriptions  CompanySubscription[]

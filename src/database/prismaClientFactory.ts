@@ -1,9 +1,9 @@
-import { PrismaClient as CentralPrismaClient } from "@prisma/client";
+import { PrismaClient as CentralPrismaClient, Company } from "@prisma/client";
 import { PrismaClient as TenantPrismaClient } from "../../generated/tenant";
 
-export const centralPrisma = new CentralPrismaClient();
-
 const tenantClients: Record<string, TenantPrismaClient> = {};
+
+export const centralPrisma = new CentralPrismaClient();
 
 export function getPrismaClient(databaseName: string): TenantPrismaClient {
   console.log(
@@ -21,4 +21,14 @@ export function getPrismaClient(databaseName: string): TenantPrismaClient {
     });
   }
   return tenantClients[databaseName];
+}
+
+export const getCompanies = async (): Promise<Company[]> => {
+  return await centralPrisma.company.findMany();
+};
+
+export async function getCompany(companyId: number) {
+  return await centralPrisma.company.findUnique({
+    where: { id: companyId },
+  });
 }
